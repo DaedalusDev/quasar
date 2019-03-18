@@ -1,6 +1,7 @@
 import Vue from 'vue'
 
 import QBtn from '../btn/QBtn.js'
+import QDateHeader from './QDateHeader'
 import DateTimeMixin from './datetime-mixin.js'
 
 import { splitDate } from '../../utils/date.js'
@@ -22,22 +23,22 @@ export default Vue.extend({
 
     calendar: {
       type: String,
-      validator: v => ['gregorian', 'persian'].includes(v),
+      validator: v => [ 'gregorian', 'persian' ].includes(v),
       default: 'gregorian'
     },
 
-    events: [Array, Function],
-    eventColor: [String, Function],
+    events: [ Array, Function ],
+    eventColor: [ String, Function ],
 
-    options: [Array, Function],
+    options: [ Array, Function ],
 
-    firstDayOfWeek: [String, Number],
+    firstDayOfWeek: [ String, Number ],
     todayBtn: Boolean,
     minimal: Boolean,
     defaultView: {
       type: String,
       default: 'Calendar',
-      validator: v => ['Calendar', 'Years', 'Months'].includes(v)
+      validator: v => [ 'Calendar', 'Years', 'Months' ].includes(v)
     }
   },
 
@@ -91,37 +92,6 @@ export default Vue.extend({
       }
 
       return splitDate(v)
-    },
-
-    headerTitle () {
-      const model = this.extModel
-      if (model.value === null) { return ' --- ' }
-
-      let date
-
-      if (this.calendar !== 'persian') {
-        date = new Date(model.year, model.month - 1, model.day)
-      }
-      else {
-        const gDate = toGregorian(model.year, model.month, model.day)
-        date = new Date(gDate.gy, gDate.gm - 1, gDate.gd)
-      }
-
-      if (isNaN(date.valueOf())) { return ' --- ' }
-
-      if (this.$q.lang.date.headerTitle !== void 0) {
-        return this.$q.lang.date.headerTitle(date, model)
-      }
-
-      return this.$q.lang.date.daysShort[ date.getDay() ] + ', ' +
-        this.$q.lang.date.monthsShort[ model.month - 1 ] + ' ' +
-        model.day
-    },
-
-    headerSubtitle () {
-      return this.extModel.year !== null
-        ? this.extModel.year
-        : ' --- '
     },
 
     dateArrow () {
@@ -315,70 +285,23 @@ export default Vue.extend({
     __getHeader (h) {
       if (this.minimal === true) { return }
 
-      return h('div', {
-        staticClass: 'q-date__header',
-        class: this.headerClass
-      }, [
-        h('div', {
-          staticClass: 'relative-position'
-        }, [
-          h('transition', {
-            props: {
-              name: 'q-transition--fade'
-            }
-          }, [
-            h('div', {
-              key: 'h-yr-' + this.headerSubtitle,
-              staticClass: 'q-date__header-subtitle q-date__header-link',
-              class: this.view === 'Years' ? 'q-date__header-link--active' : 'cursor-pointer',
-              attrs: { tabindex: this.computedTabindex },
-              on: {
-                click: () => { this.view = 'Years' },
-                keyup: e => { e.keyCode === 13 && (this.view = 'Years') }
-              }
-            }, [ this.headerSubtitle ])
-          ])
-        ]),
+      const { color, editable, extModel, textColor, todayBtn, value, view } = this
 
-        h('div', {
-          staticClass: 'q-date__header-title relative-position flex no-wrap'
-        }, [
-          h('div', {
-            staticClass: 'relative-position col'
-          }, [
-            h('transition', {
-              props: {
-                name: 'q-transition--fade'
-              }
-            }, [
-              h('div', {
-                key: this.value,
-                staticClass: 'q-date__header-title-label q-date__header-link',
-                class: this.view === 'Calendar' ? 'q-date__header-link--active' : 'cursor-pointer',
-                attrs: { tabindex: this.computedTabindex },
-                on: {
-                  click: e => { this.view = 'Calendar' },
-                  keyup: e => { e.keyCode === 13 && (this.view = 'Calendar') }
-                }
-              }, [ this.headerTitle ])
-            ])
-          ]),
-
-          this.todayBtn === true ? h(QBtn, {
-            staticClass: 'q-date__header-today',
-            props: {
-              icon: this.$q.iconSet.datetime.today,
-              flat: true,
-              size: 'sm',
-              round: true,
-              tabindex: this.computedTabindex
-            },
-            on: {
-              click: this.__setToday
-            }
-          }) : null
-        ])
-      ])
+      return h(QDateHeader, {
+        props: {
+          color,
+          editable,
+          extModel,
+          textColor,
+          todayBtn,
+          value,
+          view
+        },
+        on: {
+          'set-view': (v) => { this.view = v },
+          'set-today': this.__setToday
+        }
+      })
     },
 
     __getNavigation (h, { label, view, key, dir, goTo, cls }) {
@@ -455,7 +378,7 @@ export default Vue.extend({
           h('div', {
             staticClass: 'q-date__navigation row items-center no-wrap'
           }, this.__getNavigation(h, {
-            label: this.$q.lang.date.months[ this.innerModel.month - 1 ],
+            label: this.$q.lang.date.months[this.innerModel.month - 1],
             view: 'Months',
             key: this.innerModel.month,
             dir: this.monthDirection,

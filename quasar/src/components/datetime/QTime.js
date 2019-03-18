@@ -2,6 +2,7 @@ import Vue from 'vue'
 
 import QBtn from '../btn/QBtn.js'
 import TouchPan from '../../directives/TouchPan.js'
+import QTimeHeader from './QTimeHeader'
 
 import { splitTime } from '../../utils/date.js'
 import { position } from '../../utils/event.js'
@@ -124,14 +125,6 @@ export default Vue.extend({
       }
 
       return { transform }
-    },
-
-    minLink () {
-      return this.innerModel.hour !== null
-    },
-
-    secLink () {
-      return this.minLink && this.innerModel.minute !== null
     },
 
     hourInSelection () {
@@ -317,88 +310,24 @@ export default Vue.extend({
     },
 
     __getHeader (h) {
-      const label = [
-        h('div', {
-          staticClass: 'q-time__link',
-          class: this.view === 'Hour' ? 'q-time__link--active' : 'cursor-pointer',
-          attrs: { tabindex: this.computedTabindex },
-          on: {
-            click: () => { this.view = 'Hour' },
-            keyup: e => { e.keyCode === 13 && (this.view = 'Hour') }
-          }
-        }, [ this.stringModel.hour ]),
-        h('div', [ ':' ]),
-        h(
-          'div',
-          this.minLink === true
-            ? {
-              staticClass: 'q-time__link',
-              class: this.view === 'Minute' ? 'q-time__link--active' : 'cursor-pointer',
-              attrs: { tabindex: this.computedTabindex },
-              on: {
-                click: () => { this.view = 'Minute' },
-                keyup: e => { e.keyCode === 13 && (this.view = 'Minute') }
-              }
-            }
-            : { staticClass: 'q-time__link' },
-          [ this.stringModel.minute ]
-        )
-      ]
-
-      if (this.withSeconds === true) {
-        label.push(
-          h('div', [ ':' ]),
-          h(
-            'div',
-            this.secLink === true
-              ? {
-                staticClass: 'q-time__link',
-                class: this.view === 'Second' ? 'q-time__link--active' : 'cursor-pointer',
-                attrs: { tabindex: this.computedTabindex },
-                on: {
-                  click: () => { this.view = 'Second' },
-                  keyup: e => { e.keyCode === 13 && (this.view = 'Second') }
-                }
-              }
-              : { staticClass: 'q-time__link' },
-            [ this.stringModel.second ]
-          )
-        )
-      }
-
-      return h('div', {
-        staticClass: 'q-time__header flex flex-center no-wrap',
-        class: this.headerClass
-      }, [
-        h('div', {
-          staticClass: 'q-time__header-label row items-center no-wrap',
-          attrs: { dir: 'ltr' }
-        }, label),
-
-        this.computedFormat24h === false ? h('div', {
-          staticClass: 'q-time__header-ampm column items-between no-wrap'
-        }, [
-          h('div', {
-            staticClass: 'q-time__link',
-            class: this.isAM === true ? 'q-time__link--active' : 'cursor-pointer',
-            attrs: { tabindex: this.computedTabindex },
-            on: {
-              click: this.__setAm,
-              keyup: e => { e.keyCode === 13 && this.__setAm() }
-            }
-          }, [ 'AM' ]),
-
-          h('div', {
-            staticClass: 'q-time__link',
-            class: this.isAM !== true ? 'q-time__link--active' : 'cursor-pointer',
-            attrs: { tabindex: this.computedTabindex },
-            on: {
-              click: this.__setPm,
-              keyup: e => { e.keyCode === 13 && this.__setPm() }
-            }
-          }, [ 'PM' ])
-        ]) : null
-      ])
+      const { color, computedFormat24h, editable, innerModel, stringModel, textColor, value, view } = this
+      return h(QTimeHeader, {
+        props: {
+          color,
+          editable,
+          format24h: computedFormat24h,
+          innerModel,
+          stringModel,
+          textColor,
+          value,
+          view
+        },
+        on: {
+          'set-view': (v) => { this.view = v },
+          'set-pm': this.__setPm,
+          'set-am': this.__setAm
+        }
+      })
     },
 
     __getClock (h) {
@@ -428,7 +357,7 @@ export default Vue.extend({
                 on: {
                   click: this.__click
                 },
-                directives: [{
+                directives: [ {
                   name: 'touch-pan',
                   value: this.__drag,
                   modifiers: {
@@ -438,7 +367,7 @@ export default Vue.extend({
                     mouseStop: true,
                     mousePrevent: true
                   }
-                }]
+                } ]
               }, [
                 h('div', { staticClass: 'q-time__clock-circle fit' }, [
                   this.innerModel[view] !== null
